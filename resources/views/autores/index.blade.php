@@ -76,7 +76,7 @@
                                                 <td>
                                                     <strong>{{ $autor->apellido }}, {{ $autor->nombre }}</strong>
                                                 </td>
-                                                <td>{{ $autor->NACIONALIDAD ?? 'No registrada' }}</td>
+                                                <td>{{ $autor->nacionalidad ?: 'No registrada' }}</td>
                                                 <td>
                                                     @if($autor->fecha_nacimiento)
                                                         {{ date('d/m/Y', strtotime($autor->fecha_nacimiento)) }}

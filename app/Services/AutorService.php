@@ -8,27 +8,27 @@ use PDO;
 class AutorService
 {
     public function obtenerAutores()
-    {
-        try {
-            $autores = DB::select("
-                SELECT 
-                    id_autor AS ID_AUTOR,
-                    nombre AS NOMBRE,
-                    apellido AS APELLIDO,
-                    nacionalidad AS NACIONALIDAD,
-                    fecha_nacimiento AS FECHA_NACIMIENTO,
-                    biografia AS BIOGRAFIA,
-                    estado AS ESTADO
-                FROM AUTORES 
-                WHERE estado = 'A' 
-                ORDER BY id_autor ASC
-            ");
+{
+    try {
+        $autores = DB::select("
+            SELECT 
+                id_autor,
+                nombre,
+                apellido,
+                COALESCE(nacionalidad, 'No registrada') as nacionalidad,
+                fecha_nacimiento,
+                biografia,
+                estado
+            FROM autores 
+            WHERE estado = 'A' 
+            ORDER BY apellido, nombre
+        ");
 
-            return $autores;
+        return $autores;
 
-        } catch (\Exception $e) {
-            \Log::error('Error al obtener autores: ' . $e->getMessage());
-            return [];
-        }
+    } catch (\Exception $e) {
+        \Log::error('Error al obtener autores: ' . $e->getMessage());
+        return [];
     }
+}
 }
