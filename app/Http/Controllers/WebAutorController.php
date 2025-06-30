@@ -152,4 +152,34 @@ class WebAutorController extends Controller
             return back()->with('error', 'Error: ' . $e->getMessage());
         }
     }
+    public function obtenerLibrosAutor($id)
+{
+    try {
+        $libros = DB::select("
+            SELECT 
+                l.id_libro,
+                l.titulo,
+                l.editorial,
+                l.anio_publicacion,
+                l.stock_total,
+                l.stock_disponible,
+                l.isbn,
+                l.ubicacion
+            FROM libros l
+            WHERE l.id_autor = ? AND l.estado = 'A'
+            ORDER BY l.titulo
+        ", [$id]);
+
+        return response()->json([
+            'success' => true,
+            'libros' => $libros
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al cargar libros: ' . $e->getMessage()
+        ], 500);
+    }
+}
 }

@@ -30,5 +30,16 @@ Route::prefix('v1')->group(function () {
         Route::get('/vencidos', [PrestamoController::class, 'vencidos']);
         Route::get('/disponibilidad/{idLibro}', [PrestamoController::class, 'verificarDisponibilidad']);
     });
+
+    Route::get('/autores/{id}/libros', function($id) {
+    $libros = DB::select("
+        SELECT l.titulo, l.editorial, l.anio_publicacion, l.stock_total, l.stock_disponible
+        FROM libros l
+        WHERE l.id_autor = ? AND l.estado = 'A'
+        ORDER BY l.titulo
+    ", [$id]);
+    
+    return response()->json(['libros' => $libros]);
+});
     
 });

@@ -50,3 +50,4 @@ Route::prefix('categorias')->group(function () {
     Route::delete('/{id}', [WebCategoriaController::class, 'destroy'])->name('categorias.destroy');
 });
 
+Route::get('/api/autores/{id}/libros', [WebAutorController::class, 'obtenerLibrosAutor'])->name('api.autores.libros');

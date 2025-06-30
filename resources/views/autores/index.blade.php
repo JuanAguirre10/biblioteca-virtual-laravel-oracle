@@ -85,7 +85,10 @@
                                                     @endif
                                                 </td>
                                                 <td>
-                                                    <span class="badge bg-info">Ver libros</span>
+                                                    <button type="button" class="btn btn-sm btn-info" 
+        onclick="verLibrosAutor({{ $autor->id_autor }}, '{{ addslashes($autor->apellido) }}, {{ addslashes($autor->nombre) }}')">
+    <i class="fas fa-book"></i> Ver libros
+</button>
                                                 </td>
                                                 <td>
                                                     <div class="btn-group btn-group-sm" role="group">
@@ -164,5 +167,146 @@
             }
         }
     </script>
+    <div class="modal fade" id="librosModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-books"></i> Libros de <span id="autorNombre"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="librosContent">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+function verLibrosAutor(idAutor, nombreAutor) {
+    document.getElementById('autorNombre').textContent = nombreAutor;
+    
+    // Mostrar modal
+    const modal = new bootstrap.Modal(document.getElementById('librosModal'));
+    modal.show();
+    
+    // Mostrar spinner
+    document.getElementById('librosContent').innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-2">Cargando libros...</p>
+        </div>
+    `;
+    
+    // Cargar libros reales
+    fetch(`/api/autores/${idAutor}/libros`)
+        .then(response => response.json())
+        .then(data => {
+            let html = '';
+            
+            if (data.success && data.libros && data.libros.length > 0) {
+                html = `
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Título</th>
+                                    <th>Editorial</th>
+                                    <th>Año</th>
+                                    <th>Stock Total</th>
+                                    <th>Disponible</th>
+                                    <th>Ubicación</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                data.libros.forEach(libro => {
+                    html += `
+                        <tr>
+                            <td>
+                                <strong>${libro.titulo}</strong>
+                                ${libro.isbn ? `<br><small class="text-muted">ISBN: ${libro.isbn}</small>` : ''}
+                            </td>
+                            <td>${libro.editorial || 'N/A'}</td>
+                            <td>${libro.anio_publicacion || 'N/A'}</td>
+                            <td><span class="badge bg-info">${libro.stock_total}</span></td>
+                            <td>
+                                ${libro.stock_disponible > 0 
+                                    ? `<span class="badge bg-success">${libro.stock_disponible}</span>`
+                                    : `<span class="badge bg-danger">0</span>`
+                                }
+                            </td>
+                            <td>${libro.ubicacion || 'N/A'}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table></div>';
+                
+                // Agregar estadística
+                const totalLibros = data.libros.length;
+                const totalStock = data.libros.reduce((sum, libro) => sum + libro.stock_total, 0);
+                const totalDisponible = data.libros.reduce((sum, libro) => sum + libro.stock_disponible, 0);
+                
+                html += `
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h5 class="text-primary">${totalLibros}</h5>
+                                <small class="text-muted">Títulos</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h5 class="text-info">${totalStock}</h5>
+                                <small class="text-muted">Stock Total</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h5 class="text-success">${totalDisponible}</h5>
+                                <small class="text-muted">Disponibles</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+            } else {
+                html = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No hay libros de este autor</h5>
+                        <p class="text-muted">Este autor aún no tiene libros registrados en la biblioteca</p>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('librosContent').innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('librosContent').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Error al cargar los libros.</strong><br>
+                    Intenta nuevamente o contacta al administrador.
+                </div>
+            `;
+        });
+}
+</script>
 </body>
+
 </html>
